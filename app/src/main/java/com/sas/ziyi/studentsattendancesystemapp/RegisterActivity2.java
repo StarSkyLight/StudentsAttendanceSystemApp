@@ -156,9 +156,6 @@ public class RegisterActivity2 extends AppCompatActivity {
      * @param studentEntity
      */
     public void postRegisterInfor(LoginEntity loginEntity,StudentEntity studentEntity){
-        /*JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("loginInfor",loginInfor);
-        jsonObject.addProperty("studentInfor",studentInfor);*/
         /**
          * 使用Gson对封装好的实体进行封装
          */
@@ -170,9 +167,8 @@ public class RegisterActivity2 extends AppCompatActivity {
         jsonArray.add(json_loginInfor);
         jsonArray.add(json_studentInfor);
         String tempJson = gson.toJson(jsonArray);
-        Log.d("return",gson.fromJson(tempJson,JsonArray.class).get(0).getAsString());
 
-        String url = "http://10.0.2.2:8080/registercontrol/register";
+        String url = "http://10.0.2.2:8080/registercontrol/studentregister";
         HttpUtil.sendOKHttpPost(url, "registerInfor", tempJson, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
