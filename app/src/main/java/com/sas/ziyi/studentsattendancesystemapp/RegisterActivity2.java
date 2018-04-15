@@ -168,7 +168,7 @@ public class RegisterActivity2 extends AppCompatActivity {
         jsonArray.add(json_studentInfor);
         String tempJson = gson.toJson(jsonArray);
 
-        String url = "http://10.0.2.2:8080/registercontrol/studentregister";
+        String url = getString(R.string.url_head) + "/registercontrol/studentregister";
         HttpUtil.sendOKHttpPost(url, "registerInfor", tempJson, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {

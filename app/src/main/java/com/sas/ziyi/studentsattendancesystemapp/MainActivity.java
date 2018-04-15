@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
      * 提交用户名和密码
      */
     public void postUnamePword(String dataNaem,String jsonData){
-        String url = "http://10.0.2.2:8080/logincontrol/login";
+        String url = getString(R.string.url_head) + "/logincontrol/login";
         HttpUtil.sendOKHttpPost(url,dataNaem,jsonData,new Callback(){
 
             @Override
@@ -117,8 +117,11 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if(responseText != null && !responseText.equals("")){
-                            Toast.makeText(MainActivity.this,responseText,
-                                    Toast.LENGTH_LONG).show();
+                            /*Toast.makeText(MainActivity.this,responseText,
+                                    Toast.LENGTH_LONG).show();*/
+                            Intent intent = new Intent(MainActivity.this,ClassesActivity.class);
+                            //intent.putExtra("userInfor",responseText);
+                            startActivity(intent);
                         }
                         else{
                             Toast.makeText(MainActivity.this,"服务器抽风了呢！",

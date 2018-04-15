@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">StudentsAttendanceSystemApp</string>
+    <string name="url_head">http://10.0.2.2:8080</string>
 </resources>
