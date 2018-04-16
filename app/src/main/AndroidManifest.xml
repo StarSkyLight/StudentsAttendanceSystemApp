@@ -21,7 +21,7 @@
         <activity android:name=".RegisterActivity" />
         <activity android:name=".RegisterActivity2" />
         <activity android:name=".RegisterActivity3" />
-        <activity android:name=".ClassesActivity"
+        <activity android:name=".ClassesForTeacherActivity"
             android:label="toolbar"></activity>
     </application>
 
