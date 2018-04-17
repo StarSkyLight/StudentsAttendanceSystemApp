@@ -8,16 +8,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.sas.ziyi.studentsattendancesystemapp.entity.CheckEntity;
 import com.sas.ziyi.studentsattendancesystemapp.entity.ClassEntity;
 import com.sas.ziyi.studentsattendancesystemapp.util.HttpUtil;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -27,11 +36,17 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
     private Button button_classes;
+    private LinearLayout contentLayout;
+    private ScrollView scrollView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_classes_teacher);
+
+        scrollView = (ScrollView)findViewById(R.id.class_layout);
+        contentLayout = (LinearLayout)findViewById(R.id.content_layout);
+        scrollView.setVisibility(View.INVISIBLE);
 
         /**
          * 获取userid
@@ -57,23 +72,25 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
             actionBar.setHomeAsUpIndicator(R.mipmap.ic_menu_white_24dp);
         }
 
-        button_classes = (Button)findViewById(R.id.test_classes);
+        /*button_classes = (Button)findViewById(R.id.test_classes);
         button_classes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /**
+                *//**
                  * 添加课程
-                 */
+                 *//*
                 ClassEntity classEntity = new ClassEntity();
                 classEntity.setClassName("高等数学A1");
                 classEntity.setClassFounderId(teacherInfor);
                 addClass("classInfor",classEntity);
-                /**
+                *//**
                  * 调用方法，向服务器发送请求，获取当前用户的课程。
-                 */
+                 *//*
                 //getTeacherClasses("teacherInfor",teacherInfor);
             }
-        });
+        });*/
+
+
     }
 
     @Override
@@ -91,7 +108,7 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
      * 向服务器发送请求，获取当前用户的课程。
      */
     public void getTeacherClasses(String dataName,String userInfor){
-        String url = getString(R.string.url_head) + "/classescontrol/getteacherclasses";
+        String url = getString(R.string.url_head) + "/classescontrol/getteacherclasssipminfo";
         HttpUtil.sendOKHttpPost(url, dataName, userInfor, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -114,9 +131,10 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
                     public void run() {
                         /**
                          * 以列表显示
-                         * （暂未实现）
+                         *
                          */
-                        Log.d("return",responseText);
+                        showClassesInfo(responseText);
+                        //Log.d("return",responseText);
                     }
                 });
             }
@@ -166,5 +184,49 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    /**
+     * 操作UI元素，显示所有课程简略信息
+     */
+    public void showClassesInfo(String checkInfo){
+        String tempJson = checkInfo;
+        Gson gson = new Gson();
+        List<Map<String,String>> infoList = new ArrayList<Map<String,String>>();
+
+        infoList = gson.fromJson(tempJson,new TypeToken<List<Map<String,String>>>(){}.getType());
+
+        /**
+         * 清除页面信息
+         */
+        if(contentLayout != null){
+            contentLayout.removeAllViews();
+        }
+        /**
+         * 遍历整个list，将对应数据显示在界面上
+         */
+        for(Map<String,String> tempMap :infoList ){
+            View view = LayoutInflater.from(this).inflate(R.layout.class_infor_teacher_simple,
+                    contentLayout,false);
+            TextView textView_class_name = (TextView)view.findViewById(R.id.text_class_name);
+            TextView textView_students_num = (TextView)view.findViewById(R.id.text_students_num);
+            TextView textView_check_num = (TextView)view.findViewById(R.id.text_check_num);
+
+            String tempStirng = tempMap.get("classesSimpInforList");
+            List<CheckEntity> classesSimpInforList = gson.fromJson(tempStirng,new TypeToken<List<CheckEntity>>(){}.getType());
+            tempStirng = tempMap.get("classEntity");
+            ClassEntity classEntity = gson.fromJson(tempStirng,ClassEntity.class);
+            tempStirng = tempMap.get("studentsNum");
+            List<String> studentsNum = gson.fromJson(tempStirng,new TypeToken<List<String>>(){}.getType());
+            Log.d("return",studentsNum.size()+"");
+
+            textView_class_name.setText(classEntity.getClassName());
+            textView_students_num.setText(studentsNum.size()+"");
+            textView_check_num.setText(classesSimpInforList.size()+"");
+
+            contentLayout.addView(view);
+
+            scrollView.setVisibility(View.VISIBLE);
+        }
     }
 }
