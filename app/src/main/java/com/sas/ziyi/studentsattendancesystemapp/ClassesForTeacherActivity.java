@@ -1,9 +1,12 @@
 package com.sas.ziyi.studentsattendancesystemapp;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -35,9 +38,9 @@ import okhttp3.Response;
 public class ClassesForTeacherActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
-    private Button button_classes;
     private LinearLayout contentLayout;
     private ScrollView scrollView;
+    private FloatingActionButton floatingActionButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,31 +67,30 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
          * 更新课程列表
          */
         getTeacherClasses("teacherInfor",teacherInfor);
-
+        /**
+         * 滑动菜单
+         */
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null){
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.mipmap.ic_menu_white_24dp);
         }
-
-        /*button_classes = (Button)findViewById(R.id.test_classes);
-        button_classes.setOnClickListener(new View.OnClickListener() {
+        /**
+         * 悬浮按钮
+         */
+        floatingActionButton = (FloatingActionButton)findViewById(R.id.add_class);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                *//**
-                 * 添加课程
-                 *//*
                 ClassEntity classEntity = new ClassEntity();
-                classEntity.setClassName("高等数学A1");
-                classEntity.setClassFounderId(teacherInfor);
-                addClass("classInfor",classEntity);
-                *//**
-                 * 调用方法，向服务器发送请求，获取当前用户的课程。
-                 *//*
-                //getTeacherClasses("teacherInfor",teacherInfor);
+                /**
+                 * 显示对话框
+                 */
+                showDialog(teacherInfor);
+
             }
-        });*/
+        });
 
 
     }
@@ -134,7 +136,6 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
                          *
                          */
                         showClassesInfo(responseText);
-                        //Log.d("return",responseText);
                     }
                 });
             }
@@ -172,9 +173,9 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
                         if(responseText != null && !responseText.equals("")){
                             /**
                              * 以列表显示
-                             * （暂未实现）
+                             *
                              */
-                            Log.d("return",responseText);
+                            showClassesInfo(responseText);
                         }
                         else{
                             Toast.makeText(ClassesForTeacherActivity.this,"服务器抽风了呢！",
@@ -190,6 +191,7 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
      * 操作UI元素，显示所有课程简略信息
      */
     public void showClassesInfo(String checkInfo){
+        Log.d("return",checkInfo);
         String tempJson = checkInfo;
         Gson gson = new Gson();
         List<Map<String,String>> infoList = new ArrayList<Map<String,String>>();
@@ -218,7 +220,6 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
             ClassEntity classEntity = gson.fromJson(tempStirng,ClassEntity.class);
             tempStirng = tempMap.get("studentsNum");
             List<String> studentsNum = gson.fromJson(tempStirng,new TypeToken<List<String>>(){}.getType());
-            Log.d("return",studentsNum.size()+"");
 
             textView_class_name.setText(classEntity.getClassName());
             textView_students_num.setText(studentsNum.size()+"");
@@ -228,5 +229,46 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
 
             scrollView.setVisibility(View.VISIBLE);
         }
+    }
+
+    /**
+     * 显示对话框
+     */
+    public void showDialog(String teacherInfor){
+        final View view = LayoutInflater.from(this).inflate(R.layout.dialog,mDrawerLayout,
+                false);
+        final String tempString = teacherInfor;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("添加课程");
+        builder.setView(view);
+        builder.setPositiveButton("添加", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                TextView textView_class_name = view.findViewById(R.id.class_name);
+
+                String tempString = textView_class_name.getText().toString();
+                if(tempString != null && !tempString.equals("")){
+                    ClassEntity classEntity = new ClassEntity();
+                    classEntity.setClassName(textView_class_name.getText().toString());
+                    classEntity.setClassFounderId(tempString);
+
+                    addClass("classInfor",classEntity);
+                }else {
+                    Toast.makeText(ClassesForTeacherActivity.this,"课程名不能为空！",
+                            Toast.LENGTH_SHORT).show();
+                }
+
+
+            }
+        });
+
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.create().show();
     }
 }
