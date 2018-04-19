@@ -237,7 +237,7 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
     public void showDialog(String teacherInfor){
         final View view = LayoutInflater.from(this).inflate(R.layout.dialog,mDrawerLayout,
                 false);
-        final String tempString = teacherInfor;
+        final String tempTeacherInfor = teacherInfor;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("添加课程");
         builder.setView(view);
@@ -250,7 +250,7 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
                 if(tempString != null && !tempString.equals("")){
                     ClassEntity classEntity = new ClassEntity();
                     classEntity.setClassName(textView_class_name.getText().toString());
-                    classEntity.setClassFounderId(tempString);
+                    classEntity.setClassFounderId(tempTeacherInfor);
 
                     addClass("classInfor",classEntity);
                 }else {

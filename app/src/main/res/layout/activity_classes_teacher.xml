@@ -29,13 +29,6 @@ android:layout_height="match_parent">
 
         </android.support.design.widget.AppBarLayout>
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/add_class"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
-            android:src="@mipmap/ic_add_white_24dp"/>
 
         <ScrollView
             android:id="@+id/class_layout"
@@ -55,6 +48,14 @@ android:layout_height="match_parent">
             </LinearLayout>
 
         </ScrollView>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/add_class"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="16dp"
+            android:src="@mipmap/ic_add_white_24dp"/>
 
     </android.support.design.widget.CoordinatorLayout>
 
