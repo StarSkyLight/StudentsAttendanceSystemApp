@@ -10,11 +10,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -42,6 +40,9 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
     private ScrollView scrollView;
     private FloatingActionButton floatingActionButton;
 
+    private String teacherInfor;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +56,7 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
          * 获取userid
          */
         Intent intent = getIntent();
-        final String teacherInfor = intent.getStringExtra("userInfor");
+        teacherInfor = intent.getStringExtra("userInfor");
 
         /**
          * toolbar
@@ -83,7 +84,6 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ClassEntity classEntity = new ClassEntity();
                 /**
                  * 显示对话框
                  */
@@ -191,12 +191,12 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
      * 操作UI元素，显示所有课程简略信息
      */
     public void showClassesInfo(String checkInfo){
-        Log.d("return",checkInfo);
         String tempJson = checkInfo;
         Gson gson = new Gson();
         List<Map<String,String>> infoList = new ArrayList<Map<String,String>>();
 
         infoList = gson.fromJson(tempJson,new TypeToken<List<Map<String,String>>>(){}.getType());
+
 
         /**
          * 清除页面信息
@@ -215,15 +215,31 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
             TextView textView_check_num = (TextView)view.findViewById(R.id.text_check_num);
 
             String tempStirng = tempMap.get("classesSimpInforList");
+            final String classesSimpInfor = tempStirng;
             List<CheckEntity> classesSimpInforList = gson.fromJson(tempStirng,new TypeToken<List<CheckEntity>>(){}.getType());
             tempStirng = tempMap.get("classEntity");
+            final String classes = tempStirng;
             ClassEntity classEntity = gson.fromJson(tempStirng,ClassEntity.class);
             tempStirng = tempMap.get("studentsNum");
+            final String students = tempStirng;
             List<String> studentsNum = gson.fromJson(tempStirng,new TypeToken<List<String>>(){}.getType());
 
             textView_class_name.setText(classEntity.getClassName());
             textView_students_num.setText(studentsNum.size()+"");
             textView_check_num.setText(classesSimpInforList.size()+"");
+
+
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(ClassesForTeacherActivity.this,ClassDetTeacherActivity.class);
+                    intent.putExtra("classesSimpInforList",classesSimpInfor);
+                    intent.putExtra("classEntity",classes);
+                    intent.putExtra("studentsNum",students);
+                    intent.putExtra("teacherInfor",teacherInfor);
+                    startActivity(intent);
+                }
+            });
 
             contentLayout.addView(view);
 

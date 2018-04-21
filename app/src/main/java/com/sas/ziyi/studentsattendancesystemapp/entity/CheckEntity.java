@@ -8,20 +8,27 @@ public class CheckEntity {
     private String classId;
     private String teacherId;
     private int checkKind;
+    private boolean checkIsOver;
     private Timestamp checkTime;
 
     public CheckEntity() {
         super();
     }
 
-    public CheckEntity(String checkId, String classId, String teacherId, int checkKind, Timestamp checkTime) {
+
+
+    public CheckEntity(String checkId, String classId, String teacherId, int checkKind, boolean checkIsOver,
+                       Timestamp checkTime) {
         super();
         this.checkId = checkId;
         this.classId = classId;
         this.teacherId = teacherId;
         this.checkKind = checkKind;
+        this.checkIsOver = checkIsOver;
         this.checkTime = checkTime;
     }
+
+
 
     public String getCheckId() {
         return checkId;
@@ -61,6 +68,18 @@ public class CheckEntity {
 
     public void setCheckTime(Timestamp checkTime) {
         this.checkTime = checkTime;
+    }
+
+
+
+    public boolean isCheckIsOver() {
+        return checkIsOver;
+    }
+
+
+
+    public void setCheckIsOver(boolean checkIsOver) {
+        this.checkIsOver = checkIsOver;
     }
 
 }
