@@ -1,13 +1,21 @@
 package com.sas.ziyi.studentsattendancesystemapp;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -34,7 +42,6 @@ import okhttp3.Response;
 public class ClassDetTeacherActivity extends AppCompatActivity {
 
     private TextView titleClass;
-    private TextView titleFounder;
     private TextView checkNum;
     private TextView checkNumText;
     private TextView listTitle;
@@ -66,7 +73,6 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
          * 绑定
          */
         titleClass = (TextView)findViewById(R.id.title_main) ;
-        titleFounder = (TextView)findViewById(R.id.title_vice) ;
         checkNum = (TextView)findViewById(R.id.text_up) ;
         checkNumText = (TextView)findViewById(R.id.text_down) ;
         listTitle = (TextView)findViewById(R.id.text_list_title) ;
@@ -76,9 +82,22 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
         contentLayout = (LinearLayout)findViewById(R.id.content_layout);
 
         /**
+         * toolbar
+         */
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        /**
          * 滑动菜单
          */
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null){
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(R.mipmap.ic_menu_white_24dp);
+        }
+
+
 
         /**
          * 获取课程及点名信息
@@ -115,6 +134,155 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
         getCheck(classEnt.getClassId(),teacherInfor);
 
     }
+
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.toolbar_menu,menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case android.R.id.home:
+                mDrawerLayout.openDrawer(GravityCompat.START);
+                break;
+            case R.id.invite_student:
+                Gson gson = new Gson();
+                ClassEntity classEnt = gson.fromJson(classEntity,ClassEntity.class);
+                inviteStudent(classEnt.getClassId());
+                break;
+            case R.id.delete_class:
+                gson = new Gson();
+                classEnt = gson.fromJson(classEntity,ClassEntity.class);
+                deleteClass(classEnt.getClassId());
+                break;
+        }
+        return true;
+    }
+
+
+    /**
+     * 删除课程
+     */
+    public void deleteClass(String classId){
+        String url = getString(R.string.url_head) + "/classescontrol/deleteclass";
+        HttpUtil.sendOKHttpPost(url, "classId", classId, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(ClassDetTeacherActivity.this,"服务器抽风了呢！",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String responseText = response.body().string();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(responseText != null && !responseText.equals("")){
+                            /**
+                             * 返回上一个活动
+                             *
+                             */
+                            Intent intent = new Intent();
+                            intent.putExtra("userId",teacherInfor);
+                            setResult(RESULT_OK,intent);
+                            finish();
+                        }
+                        else{
+                            Toast.makeText(ClassDetTeacherActivity.this,"服务器抽风了呢！",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+
+    /**
+     * 邀请学生
+     */
+    public void inviteStudent(String classId){
+        String url = getString(R.string.url_head) + "/classescontrol/getinvitenumber";
+        HttpUtil.sendOKHttpPost(url, "classId", classId, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(ClassDetTeacherActivity.this,"服务器抽风了呢！",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String responseText = response.body().string();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        /**
+                         * 弹出对话框，显示生成的课程邀请码
+                         */
+                        showDialogInv(responseText);
+                    }
+                });
+            }
+        });
+    }
+
+
+    /**
+     * 显示课程邀请码的对话框
+     */
+    public void showDialogInv(String inviteNum){
+        final String tempInviteNum = inviteNum;
+
+        final View view = LayoutInflater.from(this).inflate(R.layout.dialog_text,mDrawerLayout,
+                false);
+
+        final TextView textView_vice = view.findViewById(R.id.text_vice);
+        final TextView textView_main = view.findViewById(R.id.text_main);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("课程邀请码");
+        builder.setView(view);
+
+        textView_vice.setText("邀请码有效期为15分钟");
+        textView_main.setText(tempInviteNum);
+
+        builder.setPositiveButton("复制", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ClipboardManager clipboardManager = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clipData = ClipData.newPlainText(null,tempInviteNum);
+                clipboardManager.setPrimaryClip(clipData);
+                Toast.makeText(ClassDetTeacherActivity.this,"复制成功！",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.create().show();
+    }
+
 
     /**
      * 显示对话框
@@ -346,4 +514,6 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
         }
 
     }
+
+
 }

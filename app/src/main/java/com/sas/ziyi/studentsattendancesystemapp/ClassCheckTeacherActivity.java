@@ -1,10 +1,14 @@
 package com.sas.ziyi.studentsattendancesystemapp;
 
 import android.content.Intent;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -63,14 +67,35 @@ public class ClassCheckTeacherActivity extends AppCompatActivity {
         contentLayout = (LinearLayout)findViewById(R.id.content_layout);
 
         /**
+         * toolbar
+         */
+        Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        /**
          * 滑动菜单
          */
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null){
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeAsUpIndicator(R.mipmap.ic_menu_white_24dp);
+        }
 
         /**
          * 调用方法，发送请求
          */
         getAttendance(checkId);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case android.R.id.home:
+                mDrawerLayout.openDrawer(GravityCompat.START);
+                break;
+        }
+        return true;
     }
 
     /**

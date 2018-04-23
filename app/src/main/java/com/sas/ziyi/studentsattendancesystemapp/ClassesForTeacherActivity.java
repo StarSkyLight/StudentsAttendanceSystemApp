@@ -10,7 +10,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -96,6 +98,17 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onActivityResult(int requestCode,int resultCode,Intent data){
+        switch (requestCode){
+            case 1:
+                if(resultCode == RESULT_OK){
+                    getTeacherClasses("teacherInfor",teacherInfor);
+                }
+                break;
+        }
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item){
         switch (item.getItemId()){
             case android.R.id.home:
@@ -135,6 +148,7 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
                          * 以列表显示
                          *
                          */
+                        Log.d("return",responseText);
                         showClassesInfo(responseText);
                     }
                 });
@@ -237,7 +251,7 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
                     intent.putExtra("classEntity",classes);
                     intent.putExtra("studentsNum",students);
                     intent.putExtra("teacherInfor",teacherInfor);
-                    startActivity(intent);
+                    startActivityForResult(intent,1);
                 }
             });
 
@@ -287,4 +301,5 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
 
         builder.create().show();
     }
+
 }
