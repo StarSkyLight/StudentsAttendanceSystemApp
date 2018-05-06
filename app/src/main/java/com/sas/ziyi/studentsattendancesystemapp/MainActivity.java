@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -14,6 +15,8 @@ import com.sas.ziyi.studentsattendancesystemapp.util.HttpUtil;
 import com.sas.ziyi.studentsattendancesystemapp.util.Utility;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -30,14 +33,41 @@ public class MainActivity extends AppCompatActivity {
      */
     private EditText editText_password;
 
+    private RadioGroup radioGroup_character;
+
+    private String character;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
 
+        /**
+         * 设置默认值
+         */
+        character = "student";
+
         editText_userName = (EditText)findViewById(R.id.user_name);
         editText_password = (EditText)findViewById(R.id.password);
+
+        radioGroup_character = (RadioGroup) findViewById(R.id.character);
+
+
+        radioGroup_character.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId){
+                    case R.id.student:
+                        character = "student";
+                        break;
+                    case R.id.teacher:
+                        character = "teacher";
+                        break;
+                }
+            }
+        });
+
 
         /**
          * 登陆
@@ -65,10 +95,17 @@ public class MainActivity extends AppCompatActivity {
                         LoginEntity loginEntity = new LoginEntity();
                         loginEntity.setUserName(editText_userName.getText().toString());
                         loginEntity.setUserPassword(Utility.HashCode(editText_password.getText().toString()));
+
                         Gson gson = new Gson();
                         String tempJson = gson.toJson(loginEntity);
 
-                        postUnamePword("username_password",tempJson);
+                        Map<String,String > tempMap = new HashMap<String,String>();
+                        tempMap.put("user",tempJson);
+                        tempMap.put("character",character);
+
+                        String tempLoginInfo = gson.toJson(tempMap);
+
+                        postUnamePword("username_password",tempLoginInfo);
                     }
                 }
             }
@@ -117,14 +154,19 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if(responseText != null && !responseText.equals("")){
-                            /*Toast.makeText(MainActivity.this,responseText,
-                                    Toast.LENGTH_LONG).show();*/
-                            Intent intent = new Intent(MainActivity.this,ClassesForTeacherActivity.class);
-                            intent.putExtra("userInfor",responseText);
-                            startActivity(intent);
+                            if(character.equals("teacher")){
+                                Intent intent = new Intent(MainActivity.this,ClassesForTeacherActivity.class);
+                                intent.putExtra("userInfor",responseText);
+                                startActivity(intent);
+                            }
+                            else if(character.equals("student")) {
+                                Intent intent = new Intent(MainActivity.this,ClassesForStudentActivity.class);
+                                intent.putExtra("userInfor",responseText);
+                                startActivity(intent);
+                            }
                         }
                         else{
-                            Toast.makeText(MainActivity.this,"服务器抽风了呢！",
+                            Toast.makeText(MainActivity.this,"用户名或密码错误！",
                                     Toast.LENGTH_SHORT).show();
                         }
                     }

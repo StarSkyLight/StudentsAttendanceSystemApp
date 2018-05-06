@@ -26,10 +26,16 @@
         <activity
             android:name=".ClassesForTeacherActivity"
             android:label="课程" />
-        <activity android:name=".ClassDetTeacherActivity"
-            android:label="考勤"/>
-        <activity android:name=".ClassCheckTeacherActivity"
-            android:label="考勤详情"></activity>
+        <activity
+            android:name=".ClassDetTeacherActivity"
+            android:label="考勤" />
+        <activity
+            android:name=".ClassCheckTeacherActivity"
+            android:label="考勤详情" />
+        <activity
+            android:name=".ClassesForStudentActivity"
+            android:label="课程"></activity>
+        <activity android:name=".ClassDetStudentActivity"></activity>
     </application>
 
 </manifest>

@@ -13,6 +13,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +33,9 @@ import com.sas.ziyi.studentsattendancesystemapp.entity.ClassEntity;
 import com.sas.ziyi.studentsattendancesystemapp.util.HttpUtil;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -285,6 +288,46 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
 
 
     /**
+     * 显示课程邀请码的对话框
+     */
+    public void showDialogAttendNum(String attendNum){
+        final String tempInviteNum = attendNum;
+
+        final View view = LayoutInflater.from(this).inflate(R.layout.dialog_text,mDrawerLayout,
+                false);
+
+        final TextView textView_vice = view.findViewById(R.id.text_vice);
+        final TextView textView_main = view.findViewById(R.id.text_main);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("签到码");
+        builder.setView(view);
+
+        textView_vice.setText("");
+        textView_main.setText(tempInviteNum);
+
+        builder.setPositiveButton("复制", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ClipboardManager clipboardManager = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clipData = ClipData.newPlainText(null,tempInviteNum);
+                clipboardManager.setPrimaryClip(clipData);
+                Toast.makeText(ClassDetTeacherActivity.this,"复制成功！",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.create().show();
+    }
+
+    /**
      * 显示对话框
      */
     public void showDialog(String teacherInfor,String classInfor){
@@ -387,11 +430,18 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if(responseText != null && !responseText.equals("")){
+                            Gson gson = new Gson();
+                            Map<String,String> tempMap = new HashMap<String,String>();
+                            tempMap = gson.fromJson(responseText,new TypeToken<Map<String,String>>(){}.getType());
+                            /**
+                             * 显示对话框，显示考勤随机数
+                             */
+                            showDialogAttendNum(tempMap.get("attendanceNum"));
                             /**
                              * 以列表显示
                              *
                              */
-                            showInfor(responseText,classEntity);
+                            showInfor(tempMap.get("check"),classEntity);
                         }
                         else{
                             Toast.makeText(ClassDetTeacherActivity.this,"服务器抽风了呢！",
@@ -494,8 +544,9 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
                     textView_check_kind.setText("二维码");
                     break;
             }
+
             if(check.isCheckIsOver()){
-                textView_check_stage.setText("点名结束");
+                textView_check_stage.setText("考勤结束");
             }else {
                 textView_check_stage.setText("正在进行");
             }
@@ -510,8 +561,9 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
             });
 
             listLayout.addView(view);
-            scrollView.setVisibility(View.VISIBLE);
+
         }
+        scrollView.setVisibility(View.VISIBLE);
 
     }
 

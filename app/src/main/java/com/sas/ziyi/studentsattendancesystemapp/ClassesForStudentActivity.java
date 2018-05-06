@@ -12,9 +12,9 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -28,6 +28,7 @@ import com.sas.ziyi.studentsattendancesystemapp.util.HttpUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,20 +36,19 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
-public class ClassesForTeacherActivity extends AppCompatActivity {
+public class ClassesForStudentActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
     private LinearLayout contentLayout;
     private ScrollView scrollView;
     private FloatingActionButton floatingActionButton;
 
-    private String teacherInfor;
-
+    private String studentInfor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_classes_teacher);
+        setContentView(R.layout.activity_classes_for_student);
 
         scrollView = (ScrollView)findViewById(R.id.class_layout);
         contentLayout = (LinearLayout)findViewById(R.id.content_layout);
@@ -58,7 +58,7 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
          * 获取userid
          */
         Intent intent = getIntent();
-        teacherInfor = intent.getStringExtra("userInfor");
+        studentInfor = intent.getStringExtra("userInfor");
 
         /**
          * toolbar
@@ -69,7 +69,7 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
         /**
          * 更新课程列表
          */
-        getTeacherClasses("teacherInfor",teacherInfor);
+        getStudentClasses("studentInfor",studentInfor);
         /**
          * 滑动菜单
          */
@@ -79,6 +79,8 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.mipmap.ic_menu_white_24dp);
         }
+
+
         /**
          * 悬浮按钮
          */
@@ -89,12 +91,10 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
                 /**
                  * 显示对话框
                  */
-                showDialog(teacherInfor);
+                showDialog(studentInfor);
 
             }
         });
-
-
     }
 
     @Override
@@ -102,7 +102,7 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
         switch (requestCode){
             case 1:
                 if(resultCode == RESULT_OK){
-                    getTeacherClasses("teacherInfor",teacherInfor);
+                    getStudentClasses("studentInfor",studentInfor);
                 }
                 break;
         }
@@ -122,8 +122,8 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
     /**
      * 向服务器发送请求，获取当前用户的课程。
      */
-    public void getTeacherClasses(String dataName,String userInfor){
-        String url = getString(R.string.url_head) + "/classescontrol/getteacherclasssipminfo";
+    public void getStudentClasses(String dataName,String userInfor){
+        String url = getString(R.string.url_head) + "/classescontrol/getstudentclasssipminfo";
         HttpUtil.sendOKHttpPost(url, dataName, userInfor, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -131,7 +131,7 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(ClassesForTeacherActivity.this,"服务器抽风了呢！",
+                        Toast.makeText(ClassesForStudentActivity.this,"服务器抽风了呢！",
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -158,19 +158,24 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
     /**
      * 向服务器发送请求，添加课程
      */
-    public void addClass(String dataName,ClassEntity classEntity){
+    public void addClass(String dataName,String inviteNum){
         Gson gson = new Gson();
-        String json_class = gson.toJson(classEntity);
 
-        String url = getString(R.string.url_head) + "/classescontrol/addclass";
-        HttpUtil.sendOKHttpPost(url, dataName, json_class, new Callback() {
+        Map<String,String> tempMap = new HashMap<String,String>();
+        tempMap.put("inviteNum",inviteNum);
+        tempMap.put("studentId",studentInfor);
+
+        String tempMapStr = gson.toJson(tempMap);
+
+        String url = getString(R.string.url_head) + "/classescontrol/addstudentclasss";
+        HttpUtil.sendOKHttpPost(url, dataName, tempMapStr, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(ClassesForTeacherActivity.this,"服务器抽风了呢！",
+                        Toast.makeText(ClassesForStudentActivity.this,"服务器抽风了呢！",
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -191,7 +196,7 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
                             showClassesInfo(responseText);
                         }
                         else{
-                            Toast.makeText(ClassesForTeacherActivity.this,"服务器抽风了呢！",
+                            Toast.makeText(ClassesForStudentActivity.this,"无相应课程！",
                                     Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -221,35 +226,27 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
          * 遍历整个list，将对应数据显示在界面上
          */
         for(Map<String,String> tempMap :infoList ){
-            View view = LayoutInflater.from(this).inflate(R.layout.class_infor_teacher_simple,
+            View view = LayoutInflater.from(this).inflate(R.layout.class_info_student_simple,
                     contentLayout,false);
             TextView textView_class_name = (TextView)view.findViewById(R.id.text_class_name);
-            TextView textView_students_num = (TextView)view.findViewById(R.id.text_students_num);
             TextView textView_check_num = (TextView)view.findViewById(R.id.text_check_num);
 
             String tempStirng = tempMap.get("classesSimpInforList");
-            final String classesSimpInfor = tempStirng;
             List<CheckEntity> classesSimpInforList = gson.fromJson(tempStirng,new TypeToken<List<CheckEntity>>(){}.getType());
             tempStirng = tempMap.get("classEntity");
             final String classes = tempStirng;
             ClassEntity classEntity = gson.fromJson(tempStirng,ClassEntity.class);
-            tempStirng = tempMap.get("studentsNum");
-            final String students = tempStirng;
-            List<String> studentsNum = gson.fromJson(tempStirng,new TypeToken<List<String>>(){}.getType());
 
             textView_class_name.setText(classEntity.getClassName());
-            textView_students_num.setText(studentsNum.size()+"");
             textView_check_num.setText(classesSimpInforList.size()+"");
 
 
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(ClassesForTeacherActivity.this,ClassDetTeacherActivity.class);
-                    intent.putExtra("classesSimpInforList",classesSimpInfor);
+                    Intent intent = new Intent(ClassesForStudentActivity.this,ClassDetStudentActivity.class);
                     intent.putExtra("classEntity",classes);
-                    intent.putExtra("studentsNum",students);
-                    intent.putExtra("teacherInfor",teacherInfor);
+                    intent.putExtra("studentInfor",studentInfor);
                     startActivityForResult(intent,1);
                 }
             });
@@ -263,27 +260,27 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
     /**
      * 显示对话框
      */
-    public void showDialog(String teacherInfor){
-        final View view = LayoutInflater.from(this).inflate(R.layout.dialog,mDrawerLayout,
+    public void showDialog(String studentInfor){
+        final View view = LayoutInflater.from(this).inflate(R.layout.dialog_student_add_class,mDrawerLayout,
                 false);
-        final String tempTeacherInfor = teacherInfor;
+        final String tempTeacherInfor = studentInfor;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("添加课程");
+        builder.setTitle("加入课程");
         builder.setView(view);
-        builder.setPositiveButton("添加", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("加入", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                TextView textView_class_name = view.findViewById(R.id.class_name);
+                EditText textView_class_inv_num = (EditText)view.findViewById(R.id.class_inv_num);
 
-                String tempString = textView_class_name.getText().toString();
+                String tempString = textView_class_inv_num.getText().toString();
                 if(tempString != null && !tempString.equals("")){
                     ClassEntity classEntity = new ClassEntity();
-                    classEntity.setClassName(textView_class_name.getText().toString());
+                    classEntity.setClassName(textView_class_inv_num.getText().toString());
                     classEntity.setClassFounderId(tempTeacherInfor);
 
-                    addClass("classInfor",classEntity);
+                    addClass("infor",tempString);
                 }else {
-                    Toast.makeText(ClassesForTeacherActivity.this,"课程名不能为空！",
+                    Toast.makeText(ClassesForStudentActivity.this,"课程邀请码不能为空！",
                             Toast.LENGTH_SHORT).show();
                 }
 
@@ -300,5 +297,4 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
 
         builder.create().show();
     }
-
 }

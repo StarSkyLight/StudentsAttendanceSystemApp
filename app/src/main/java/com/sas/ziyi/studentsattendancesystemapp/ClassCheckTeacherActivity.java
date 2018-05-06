@@ -7,7 +7,9 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -88,15 +90,63 @@ public class ClassCheckTeacherActivity extends AppCompatActivity {
         getAttendance(checkId);
     }
 
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.toolbar_menu_class_check_teacher,menu);
+        return true;
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
         switch (item.getItemId()){
             case android.R.id.home:
                 mDrawerLayout.openDrawer(GravityCompat.START);
                 break;
+            case R.id.stop_check:
+                stopCheck(checkId);
+                break;
         }
         return true;
     }
+
+
+    /**
+     * 向服务器发送请求，停止考勤
+     */
+    public void stopCheck(String checkId){
+        String url = getString(R.string.url_head) + "/checkcontrol/stopcheck";
+        HttpUtil.sendOKHttpPost(url, "checkId", checkId, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(ClassCheckTeacherActivity.this,"服务器抽风了呢！",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String responseText = response.body().string();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(responseText != null && !responseText.equals("")){
+                            Toast.makeText(ClassCheckTeacherActivity.this,"考勤已停止",
+                                    Toast.LENGTH_LONG).show();
+                        }else {
+                            Toast.makeText(ClassCheckTeacherActivity.this,"服务器抽风了呢！",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
 
     /**
      * 向服务器发送请求，查询课程点名信息

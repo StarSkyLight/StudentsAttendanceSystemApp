@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dialog_add_attendance"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_margin="20dp"
+        android:id="@+id/text_check_num"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="请输入签到码：" />
+    　　
+
+    <EditText
+        android:layout_margin="20dp"
+        android:id="@+id/check_num"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+</LinearLayout>
