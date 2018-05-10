@@ -26,6 +26,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sas.ziyi.studentsattendancesystemapp.entity.CheckEntity;
@@ -66,6 +70,14 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
     private String classesCheckInforList;
     private String classEntity;
     private String studentsNum;
+
+    //声明AMapLocationClient类对象
+    public AMapLocationClient mLocationClient = null;
+    //声明定位回调监听器
+    public AMapLocationListener mLocationListener;
+    //声明AMapLocationClientOption对象
+    public AMapLocationClientOption mLocationOption = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -372,7 +384,13 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
         builder.setPositiveButton("开始", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                addCheck("addCheckInfor",tempTeacherInfor,tempClassInfor,selectedItem);
+
+                /**
+                 * 调用获取经纬度的方法
+                 * 定位数据需要和考勤数据一同发送，否则checkid不好获取
+                 */
+                getLocation(ClassDetTeacherActivity.this,tempTeacherInfor,tempClassInfor);
+
             }
         });
 
@@ -390,7 +408,7 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
     /**
      * 向服务器发送请求，添加点名信息
      */
-    public void addCheck(String dataName,String teacherInfor,String classInfo,String checkKind){
+    public void addCheck(String dataName,String teacherInfor,String classInfo,String checkKind,Double latitude,Double longitude){
 
         CheckEntity checkEntity = new CheckEntity();
         checkEntity.setTeacherId(teacherInfor);
@@ -408,8 +426,13 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
         Gson gson = new Gson();
         String tempStr = gson.toJson(checkEntity);
 
+        Map<String,String> tempMap = new HashMap<String,String>();
+        tempMap.put("checkEntity",tempStr);
+        tempMap.put("latitude",String.valueOf(latitude));
+        tempMap.put("longitude",String.valueOf(longitude));
+
         String url = getString(R.string.url_head) + "/checkcontrol/addcheck";
-        HttpUtil.sendOKHttpPost(url, dataName, tempStr, new Callback() {
+        HttpUtil.sendOKHttpPost(url, dataName, gson.toJson(tempMap), new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
@@ -566,6 +589,93 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
         scrollView.setVisibility(View.VISIBLE);
 
     }
+
+
+    /**
+     * 定位的方法
+     * @param context
+     * @param teacherInfor
+     * @param classInfor
+     */
+    public void getLocation(Context context,String teacherInfor,String classInfor){
+
+        final String tempTeacherInfor = teacherInfor;
+        final String tempClassInfor = classInfor;
+
+        //初始化定位
+        mLocationClient = new AMapLocationClient(context);
+
+        mLocationListener = new AMapLocationListener(){
+            @Override
+            public void onLocationChanged(AMapLocation amapLocation) {
+                if (amapLocation != null) {
+                    /**
+                     * 在这里对数据进行解析
+                     */
+                    if (amapLocation.getErrorCode() == 0) {
+                        //调用方法，向服务器传递位置信息
+                        /**
+                         * 调用添加考勤的方法
+                         */
+                        addCheck("addCheckInfor",tempTeacherInfor,tempClassInfor,
+                                selectedItem,amapLocation.getLatitude(), amapLocation.getLongitude());
+                    }else {
+                        //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
+                        Log.e("AmapError","location Error, ErrCode:"
+                                + amapLocation.getErrorCode() + ", errInfo:"
+                                + amapLocation.getErrorInfo());
+                    }
+                }
+            }
+        };
+
+        //设置定位回调监听
+        mLocationClient.setLocationListener(mLocationListener);
+        //初始化AMapLocationClientOption对象
+        mLocationOption = new AMapLocationClientOption();
+
+        mLocationOption.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.SignIn);
+        if(null != mLocationClient){
+            mLocationClient.setLocationOption(mLocationOption);
+            //设置场景模式后最好调用一次stop，再调用start以保证场景模式生效
+            mLocationClient.stopLocation();
+            mLocationClient.startLocation();
+        }
+
+        //设置定位模式为AMapLocationMode.Hight_Accuracy，高精度模式。
+        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+
+        //获取最近3s内精度最高的一次定位结果：
+        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
+        mLocationOption.setOnceLocationLatest(true);
+
+        //设置是否返回地址信息（默认返回地址信息）
+        mLocationOption.setNeedAddress(false);
+
+        //给定位客户端对象设置定位参数
+        mLocationClient.setLocationOption(mLocationOption);
+        //启动定位
+        mLocationClient.startLocation();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mLocationClient!=null) {
+            mLocationClient.onDestroy();//销毁定位客户端。
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mLocationClient!=null) {
+            mLocationClient.stopLocation();//停止定位
+        }
+    }
+
+
 
 
 }

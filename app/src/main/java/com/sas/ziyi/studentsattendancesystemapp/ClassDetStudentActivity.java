@@ -1,5 +1,6 @@
 package com.sas.ziyi.studentsattendancesystemapp;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
@@ -10,6 +11,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +23,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+import com.amap.api.location.AMapLocationClientOption;
+import com.amap.api.location.AMapLocationListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sas.ziyi.studentsattendancesystemapp.entity.AttendanceEntity;
@@ -53,6 +59,14 @@ public class ClassDetStudentActivity extends AppCompatActivity {
 
     private String classEntity;
     private String studentInfor;
+
+
+    //声明AMapLocationClient类对象
+    public AMapLocationClient mLocationClient = null;
+    //声明定位回调监听器
+    public AMapLocationListener mLocationListener;
+    //声明AMapLocationClientOption对象
+    public AMapLocationClientOption mLocationOption = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -366,7 +380,10 @@ public class ClassDetStudentActivity extends AppCompatActivity {
                     attendanceEntity.setAttendanceKind(tCheckEntity.getCheckKind());
                     attendanceEntity.setStudentId(tempStudentInfor);
 
-                    addAttendance(tempString,attendanceEntity);
+                    /**
+                     * 调用定位的方法
+                     */
+                    getLocation(ClassDetStudentActivity.this,tempString,attendanceEntity);
                 }else {
                     Toast.makeText(ClassDetStudentActivity.this,"签到码不能为空！",
                             Toast.LENGTH_SHORT).show();
@@ -389,7 +406,8 @@ public class ClassDetStudentActivity extends AppCompatActivity {
     /**
      * 添加签到
      */
-    public void addAttendance(String attendanceNum,AttendanceEntity attendanceEntity){
+    public void addAttendance(String attendanceNum,AttendanceEntity attendanceEntity,
+                              Double latitude,Double longitude){
 
         Gson gson = new Gson();
         String tempString = gson.toJson(attendanceEntity);
@@ -397,6 +415,8 @@ public class ClassDetStudentActivity extends AppCompatActivity {
         Map<String,String> tempMap = new HashMap<String,String>();
         tempMap.put("attendanceNum",attendanceNum);
         tempMap.put("attendanceEntity",tempString);
+        tempMap.put("latitude",String.valueOf(latitude));
+        tempMap.put("longitude",String.valueOf(longitude));
 
         String url = getString(R.string.url_head) + "/checkcontrol/addAttendance";
         HttpUtil.sendOKHttpPost(url, "attendanceInfor", gson.toJson(tempMap), new Callback() {
@@ -435,5 +455,83 @@ public class ClassDetStudentActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+
+    public void getLocation(Context context, String attendanceNum, AttendanceEntity attendanceEntity){
+
+        final String attendanceN = attendanceNum;
+        final AttendanceEntity attendanceEnt = attendanceEntity;
+
+        //初始化定位
+        mLocationClient = new AMapLocationClient(context);
+
+        mLocationListener = new AMapLocationListener(){
+            @Override
+            public void onLocationChanged(AMapLocation amapLocation) {
+                if (amapLocation != null) {
+                    /**
+                     * 在这里对数据进行解析
+                     */
+                    if (amapLocation.getErrorCode() == 0) {
+                        //调用方法，向服务器传递位置信息
+                        /**
+                         * 调用添加签到的方法
+                         */
+                        addAttendance(attendanceN,attendanceEnt,amapLocation.getLatitude(), amapLocation.getLongitude());
+                    }else {
+                        //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
+                        Log.e("AmapError","location Error, ErrCode:"
+                                + amapLocation.getErrorCode() + ", errInfo:"
+                                + amapLocation.getErrorInfo());
+                    }
+                }
+            }
+        };
+
+        //设置定位回调监听
+        mLocationClient.setLocationListener(mLocationListener);
+        //初始化AMapLocationClientOption对象
+        mLocationOption = new AMapLocationClientOption();
+
+        mLocationOption.setLocationPurpose(AMapLocationClientOption.AMapLocationPurpose.SignIn);
+        if(null != mLocationClient){
+            mLocationClient.setLocationOption(mLocationOption);
+            //设置场景模式后最好调用一次stop，再调用start以保证场景模式生效
+            mLocationClient.stopLocation();
+            mLocationClient.startLocation();
+        }
+
+        //设置定位模式为AMapLocationMode.Hight_Accuracy，高精度模式。
+        mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
+
+        //获取最近3s内精度最高的一次定位结果：
+        //设置setOnceLocationLatest(boolean b)接口为true，启动定位时SDK会返回最近3s内精度最高的一次定位结果。如果设置其为true，setOnceLocation(boolean b)接口也会被设置为true，反之不会，默认为false。
+        mLocationOption.setOnceLocationLatest(true);
+
+        //设置是否返回地址信息（默认返回地址信息）
+        mLocationOption.setNeedAddress(false);
+
+        //给定位客户端对象设置定位参数
+        mLocationClient.setLocationOption(mLocationOption);
+        //启动定位
+        mLocationClient.startLocation();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mLocationClient!=null) {
+            mLocationClient.onDestroy();//销毁定位客户端。
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mLocationClient!=null) {
+            mLocationClient.stopLocation();//停止定位
+        }
     }
 }

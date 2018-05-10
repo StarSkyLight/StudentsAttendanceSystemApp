@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.sas.ziyi.studentsattendancesystemapp"
-        minSdkVersion 24
+        minSdkVersion 26
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -30,4 +30,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     implementation 'com.google.code.gson:gson:2.8.2'
     implementation 'com.android.support:design:27.1.1'
+    implementation group: 'com.google.zxing', name: 'core', version: '3.3.2'
+    implementation group: 'com.google.zxing', name: 'javase', version: '3.3.2'
+
 }
