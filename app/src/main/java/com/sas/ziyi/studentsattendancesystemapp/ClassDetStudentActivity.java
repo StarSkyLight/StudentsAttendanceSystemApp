@@ -33,6 +33,9 @@ import com.sas.ziyi.studentsattendancesystemapp.entity.AttendanceEntity;
 import com.sas.ziyi.studentsattendancesystemapp.entity.CheckEntity;
 import com.sas.ziyi.studentsattendancesystemapp.entity.ClassEntity;
 import com.sas.ziyi.studentsattendancesystemapp.util.HttpUtil;
+import com.uuzuche.lib_zxing.activity.CaptureActivity;
+import com.uuzuche.lib_zxing.activity.CodeUtils;
+import com.uuzuche.lib_zxing.activity.ZXingLibrary;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -59,6 +62,7 @@ public class ClassDetStudentActivity extends AppCompatActivity {
 
     private String classEntity;
     private String studentInfor;
+    private CheckEntity checkEntForQR;
 
 
     //声明AMapLocationClient类对象
@@ -72,6 +76,11 @@ public class ClassDetStudentActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_class_det_student);
+
+        /**
+         * 扫码初始化
+         */
+        ZXingLibrary.initDisplayOpinion(this);
 
         /**
          * 绑定
@@ -135,6 +144,38 @@ public class ClassDetStudentActivity extends AppCompatActivity {
         }
         return true;
     }
+
+
+    @Override
+    protected void onActivityResult(int requestCode,int resultCode,Intent data){
+        if (requestCode == 2) {
+            //处理扫描结果（在界面上显示）
+            if (null != data) {
+                Bundle bundle = data.getExtras();
+                if (bundle == null) {
+                    return;
+                }
+                if (bundle.getInt(CodeUtils.RESULT_TYPE) == CodeUtils.RESULT_SUCCESS) {
+                    String result = bundle.getString(CodeUtils.RESULT_STRING);
+                    //Toast.makeText(this, "解析结果:" + result, Toast.LENGTH_LONG).show();
+
+                    AttendanceEntity attendanceEntity = new AttendanceEntity();
+                    attendanceEntity.setCheckId(checkEntForQR.getCheckId());
+                    attendanceEntity.setAttendanceKind(checkEntForQR.getCheckKind());
+                    attendanceEntity.setStudentId(studentInfor);
+
+                    /**
+                     * 调用定位的方法
+                     */
+                    getLocation(ClassDetStudentActivity.this,result,attendanceEntity);
+
+                } else if (bundle.getInt(CodeUtils.RESULT_TYPE) == CodeUtils.RESULT_FAILED) {
+                    Toast.makeText(ClassDetStudentActivity.this, "解析二维码失败", Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+    }
+
 
     /**
      * 退出课程
@@ -332,9 +373,19 @@ public class ClassDetStudentActivity extends AppCompatActivity {
                         if(tAttendanceEntity == null){
                             /**
                              * 判断考勤种类，进入不同界面
-                             * （未实现）
+                             *
                              */
-                            showDialog(studentInfor,tCheckEntity);
+                            switch (tCheckEntity.getCheckKind()){
+                                case 0:
+                                    showDialog(studentInfor,tCheckEntity);
+                                    break;
+                                case 1:
+                                    checkEntForQR = tCheckEntity;
+                                    Intent intent = new Intent(ClassDetStudentActivity.this, CaptureActivity.class);
+                                    startActivityForResult(intent, 2);
+                                    break;
+                            }
+
                         }else {
                             Toast.makeText(ClassDetStudentActivity.this,"考勤已经完成！",
                                     Toast.LENGTH_SHORT).show();
@@ -358,7 +409,7 @@ public class ClassDetStudentActivity extends AppCompatActivity {
 
 
     /**
-     * 显示对话框
+     * 显示随机数签到对话框
      */
     public void showDialog(String studentInfor,CheckEntity checkEntity){
         final View view = LayoutInflater.from(this).inflate(R.layout.dialog_student_add_attendance,mDrawerLayout,
@@ -440,13 +491,18 @@ public class ClassDetStudentActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if(responseText != null && !responseText.equals("")){
-                            /**
-                             * 刷新显示
-                             *
-                             */
-                            Gson gson = new Gson();
-                            ClassEntity classEnt = gson.fromJson(classEntity,ClassEntity.class);
-                            getCheckAttendance(classEnt.getClassId(),classEnt.getClassFounderId());
+                            if(responseText.equals("OK")){
+                                /**
+                                 * 刷新显示
+                                 */
+                                Gson gson = new Gson();
+                                ClassEntity classEnt = gson.fromJson(classEntity,ClassEntity.class);
+                                getCheckAttendance(classEnt.getClassId(),classEnt.getClassFounderId());
+                            }else{
+                                Toast.makeText(ClassDetStudentActivity.this,"签到失败！",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+
                         }else {
                             Toast.makeText(ClassDetStudentActivity.this,"服务器抽风了呢！",
                                     Toast.LENGTH_SHORT).show();

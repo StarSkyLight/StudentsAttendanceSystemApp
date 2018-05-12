@@ -300,7 +300,7 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
 
 
     /**
-     * 显示课程邀请码的对话框
+     * 显示课程签到码的对话框
      */
     public void showDialogAttendNum(String attendNum){
         final String tempInviteNum = attendNum;
@@ -340,7 +340,7 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
     }
 
     /**
-     * 显示对话框
+     * 显示考勤对话框
      */
     public void showDialog(String teacherInfor,String classInfor){
         final String tempTeacherInfor = teacherInfor;
@@ -349,7 +349,7 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
         final View view = LayoutInflater.from(this).inflate(R.layout.dialog_add_check,mDrawerLayout,
                 false);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("开始点名");
+        builder.setTitle("开始考勤");
         builder.setView(view);
 
 
@@ -410,7 +410,7 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
      */
     public void addCheck(String dataName,String teacherInfor,String classInfo,String checkKind,Double latitude,Double longitude){
 
-        CheckEntity checkEntity = new CheckEntity();
+        final CheckEntity checkEntity = new CheckEntity();
         checkEntity.setTeacherId(teacherInfor);
         checkEntity.setClassId(classInfo);
         switch (checkKind){
@@ -456,15 +456,32 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
                             Gson gson = new Gson();
                             Map<String,String> tempMap = new HashMap<String,String>();
                             tempMap = gson.fromJson(responseText,new TypeToken<Map<String,String>>(){}.getType());
-                            /**
-                             * 显示对话框，显示考勤随机数
-                             */
-                            showDialogAttendNum(tempMap.get("attendanceNum"));
+
                             /**
                              * 以列表显示
                              *
                              */
                             showInfor(tempMap.get("check"),classEntity);
+
+                            switch (checkEntity.getCheckKind()){
+                                case 0:
+                                    /**
+                                     * 显示对话框，显示考勤随机数
+                                     */
+                                    showDialogAttendNum(tempMap.get("attendanceNum"));
+                                    break;
+                                case 1:
+                                    /**
+                                     * 转到显示二维码的activity
+                                     */
+                                    Intent intent = new Intent(ClassDetTeacherActivity.this,ShowQRCodeActivity.class);
+                                    intent.putExtra("code",tempMap.get("attendanceNum"));
+                                    startActivity(intent);
+                                    break;
+                            }
+
+
+
                         }
                         else{
                             Toast.makeText(ClassDetTeacherActivity.this,"服务器抽风了呢！",
@@ -475,6 +492,10 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
             }
         });
     }
+
+
+
+
 
     /**
      * 向服务器发送请求，查询课程点名信息
@@ -624,6 +645,9 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
                         Log.e("AmapError","location Error, ErrCode:"
                                 + amapLocation.getErrorCode() + ", errInfo:"
                                 + amapLocation.getErrorInfo());
+
+                        Toast.makeText(ClassDetTeacherActivity.this,"请打开定位服务！",
+                                Toast.LENGTH_SHORT).show();
                     }
                 }
             }
