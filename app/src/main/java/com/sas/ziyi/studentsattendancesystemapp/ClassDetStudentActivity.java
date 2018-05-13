@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -32,6 +33,7 @@ import com.google.gson.reflect.TypeToken;
 import com.sas.ziyi.studentsattendancesystemapp.entity.AttendanceEntity;
 import com.sas.ziyi.studentsattendancesystemapp.entity.CheckEntity;
 import com.sas.ziyi.studentsattendancesystemapp.entity.ClassEntity;
+import com.sas.ziyi.studentsattendancesystemapp.entity.StudentEntity;
 import com.sas.ziyi.studentsattendancesystemapp.util.HttpUtil;
 import com.uuzuche.lib_zxing.activity.CaptureActivity;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
@@ -57,12 +59,15 @@ public class ClassDetStudentActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private LinearLayout contentLayout;
     private ScrollView scrollView;
-
+    private NavigationView navigationView;
 
 
     private String classEntity;
     private String studentInfor;
     private CheckEntity checkEntForQR;
+
+    private String userNameHeader;
+    private String userBasicInfo;
 
 
     //声明AMapLocationClient类对象
@@ -76,6 +81,15 @@ public class ClassDetStudentActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_class_det_student);
+
+        /**
+         * 获取课程及学生信息
+         */
+        Intent intent = getIntent();
+        classEntity = intent.getStringExtra("classEntity");
+        studentInfor = intent.getStringExtra("studentInfor");
+        userNameHeader = intent.getStringExtra("userNameHeader");
+        userBasicInfo = intent.getStringExtra("userBasicInfo");
 
         /**
          * 扫码初始化
@@ -111,16 +125,38 @@ public class ClassDetStudentActivity extends AppCompatActivity {
         }
 
         /**
-         * 获取课程及学生信息
+         * 设置滑动菜单中的用户名
          */
-        Intent intent = getIntent();
-        classEntity = intent.getStringExtra("classEntity");
-        studentInfor = intent.getStringExtra("studentInfor");
+        navigationView = (NavigationView)findViewById(R.id.nav_view);
+        View viewHead = navigationView.getHeaderView(0);
+        TextView userName = (TextView)viewHead.findViewById(R.id.user_name_nav_head) ;
+        userName.setText(userNameHeader);
+
+        Gson gson = new Gson();
+
+        StudentEntity studentEntity = new StudentEntity();
+        studentEntity = gson.fromJson(userBasicInfo,StudentEntity.class);
+
+        Menu viewMenu = navigationView.getMenu();
+        MenuItem item_name = (MenuItem)viewMenu.findItem(R.id.nav_name);
+        MenuItem item_gender = (MenuItem)viewMenu.findItem(R.id.nav_gender);
+        MenuItem item_school = (MenuItem)viewMenu.findItem(R.id.nav_school);
+        MenuItem item_number = (MenuItem)viewMenu.findItem(R.id.nav_number);
+        MenuItem item_email = (MenuItem)viewMenu.findItem(R.id.nav_email);
+
+        item_name.setTitle(item_name.getTitle() + "  " + studentEntity.getStudentName());
+        if(studentEntity.isStudentSex()){
+            item_gender.setTitle(item_gender.getTitle() + "  " + "男");
+        }else {
+            item_gender.setTitle(item_gender.getTitle() + "  " + "女");
+        }
+        item_school.setTitle(item_school.getTitle() + "  " + studentEntity.getStudentSchool());
+        item_number.setTitle(item_number.getTitle() + "  " + studentEntity.getStudentNumber());
+        item_email.setTitle(item_email.getTitle() + "  " + studentEntity.getStudentEmail());
 
         /**
          * 调用方法，发送请求
          */
-        Gson gson = new Gson();
         ClassEntity classEnt = gson.fromJson(classEntity,ClassEntity.class);
         getCheckAttendance(classEnt.getClassId(),classEnt.getClassFounderId());
     }

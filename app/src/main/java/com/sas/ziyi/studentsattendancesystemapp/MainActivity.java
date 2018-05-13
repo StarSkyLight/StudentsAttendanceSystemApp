@@ -157,11 +157,13 @@ public class MainActivity extends AppCompatActivity {
                             if(character.equals("teacher")){
                                 Intent intent = new Intent(MainActivity.this,ClassesForTeacherActivity.class);
                                 intent.putExtra("userInfor",responseText);
+                                intent.putExtra("userName",editText_userName.getText().toString());
                                 startActivity(intent);
                             }
                             else if(character.equals("student")) {
                                 Intent intent = new Intent(MainActivity.this,ClassesForStudentActivity.class);
                                 intent.putExtra("userInfor",responseText);
+                                intent.putExtra("userName",editText_userName.getText().toString());
                                 startActivity(intent);
                             }
                         }

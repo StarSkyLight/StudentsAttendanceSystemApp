@@ -1,8 +1,10 @@
 package com.sas.ziyi.studentsattendancesystemapp;
 
+import android.content.ClipData;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -12,10 +14,12 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,6 +28,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sas.ziyi.studentsattendancesystemapp.entity.CheckEntity;
 import com.sas.ziyi.studentsattendancesystemapp.entity.ClassEntity;
+import com.sas.ziyi.studentsattendancesystemapp.entity.StudentEntity;
 import com.sas.ziyi.studentsattendancesystemapp.util.HttpUtil;
 
 import java.io.IOException;
@@ -42,8 +47,12 @@ public class ClassesForStudentActivity extends AppCompatActivity {
     private LinearLayout contentLayout;
     private ScrollView scrollView;
     private FloatingActionButton floatingActionButton;
+    private NavigationView navigationView;
 
     private String studentInfor;
+
+    private String userNameHeader;
+    private String userBasicInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +68,7 @@ public class ClassesForStudentActivity extends AppCompatActivity {
          */
         Intent intent = getIntent();
         studentInfor = intent.getStringExtra("userInfor");
+        userNameHeader = intent.getStringExtra("userName");
 
         /**
          * toolbar
@@ -74,11 +84,23 @@ public class ClassesForStudentActivity extends AppCompatActivity {
          * 滑动菜单
          */
         mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        navigationView = (NavigationView)findViewById(R.id.nav_view);
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null){
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeAsUpIndicator(R.mipmap.ic_menu_white_24dp);
         }
+
+        getStudentBasicInfo(studentInfor);
+
+        /**
+         * 设置滑动菜单中的用户名
+         */
+        View viewHead = navigationView.getHeaderView(0);
+        TextView userName = (TextView)viewHead.findViewById(R.id.user_name_nav_head) ;
+        userName.setText(userNameHeader);
+
+
 
 
         /**
@@ -116,6 +138,58 @@ public class ClassesForStudentActivity extends AppCompatActivity {
                 break;
         }
         return true;
+    }
+
+
+    /**
+     * 获取学生基本信息的方法
+     * @param studentId
+     */
+    public void getStudentBasicInfo(String studentId){
+        String url = getString(R.string.url_head) + "/basicinfocontrol/getstudentbasicinfo";
+        HttpUtil.sendOKHttpPost(url, "studentId", studentId, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String responseText = response.body().string();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(responseText != null && !responseText.equals("")){
+
+                            userBasicInfo = responseText;
+
+                            Gson gson = new Gson();
+
+                            StudentEntity studentEntity = new StudentEntity();
+                            studentEntity = gson.fromJson(responseText,StudentEntity.class);
+
+                            Menu viewMenu = navigationView.getMenu();
+                            MenuItem item_name = (MenuItem)viewMenu.findItem(R.id.nav_name);
+                            MenuItem item_gender = (MenuItem)viewMenu.findItem(R.id.nav_gender);
+                            MenuItem item_school = (MenuItem)viewMenu.findItem(R.id.nav_school);
+                            MenuItem item_number = (MenuItem)viewMenu.findItem(R.id.nav_number);
+                            MenuItem item_email = (MenuItem)viewMenu.findItem(R.id.nav_email);
+
+                            item_name.setTitle(item_name.getTitle() + "  " + studentEntity.getStudentName());
+                            if(studentEntity.isStudentSex()){
+                                item_gender.setTitle(item_gender.getTitle() + "  " + "男");
+                            }else {
+                                item_gender.setTitle(item_gender.getTitle() + "  " + "女");
+                            }
+                            item_school.setTitle(item_school.getTitle() + "  " + studentEntity.getStudentSchool());
+                            item_number.setTitle(item_number.getTitle() + "  " + studentEntity.getStudentNumber());
+                            item_email.setTitle(item_email.getTitle() + "  " + studentEntity.getStudentEmail());
+                        }
+                    }
+                });
+            }
+        });
     }
 
 
@@ -247,6 +321,8 @@ public class ClassesForStudentActivity extends AppCompatActivity {
                     Intent intent = new Intent(ClassesForStudentActivity.this,ClassDetStudentActivity.class);
                     intent.putExtra("classEntity",classes);
                     intent.putExtra("studentInfor",studentInfor);
+                    intent.putExtra("userNameHeader",userNameHeader);
+                    intent.putExtra("userBasicInfo",userBasicInfo);
                     startActivityForResult(intent,1);
                 }
             });

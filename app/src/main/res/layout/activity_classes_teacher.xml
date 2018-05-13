@@ -59,13 +59,12 @@ android:layout_height="match_parent">
 
     </android.support.design.widget.CoordinatorLayout>
 
-    <TextView
+    <android.support.design.widget.NavigationView
+        android:id="@+id/nav_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:text="hahaha"
-        android:textSize="30sp"
-        android:background="#FFF"
-        android:clickable="true"/>
+        app:menu="@menu/nav_menu_teacher"
+        app:headerLayout="@layout/nav_header"></android.support.design.widget.NavigationView>
 
 </android.support.v4.widget.DrawerLayout>
