@@ -112,7 +112,7 @@ public class RegisterActivity3 extends AppCompatActivity {
 
                             /**
                              * 调用http请求的方法发送数据
-                             * 参数为 学生实体 和 登陆实体
+                             * 参数为 教师实体 和 登陆实体
                              */
                             postRegisterInfor(loginEntity,teacherEntity);
                         }

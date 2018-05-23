@@ -1,10 +1,12 @@
 package com.sas.ziyi.studentsattendancesystemapp;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -13,8 +15,11 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +44,8 @@ public class ClassCheckTeacherActivity extends AppCompatActivity {
 
     private String checkId;
 
+    private String selectedItem ;
+
     private TextView attendanceNum;
     private TextView attendanceNumText;
     private TextView listTitle;
@@ -48,6 +55,8 @@ public class ClassCheckTeacherActivity extends AppCompatActivity {
     private LinearLayout contentLayout;
     private ScrollView scrollView;
     private NavigationView navigationView;
+
+    private Spinner spinner;
 
     private String userNameHeader;
     private String userBasicInfo;
@@ -273,9 +282,132 @@ public class ClassCheckTeacherActivity extends AppCompatActivity {
                 textView_att_time.setText("未签到");
             }
 
-            listLayout.addView(view);
-            scrollView.setVisibility(View.VISIBLE);
+            final String tempAttendanceId = tempAttendance.getAttendanceId();
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showChangeAttDialog(tempAttendanceId);
+                }
+            });
 
+            listLayout.addView(view);
         }
+        scrollView.setVisibility(View.VISIBLE);
+    }
+
+
+    /**
+     * 修改签到状态的对话框
+     * @param attendanceId
+     */
+    public void showChangeAttDialog(String attendanceId){
+        final String temmpAttId = attendanceId;
+
+        final View view = LayoutInflater.from(this).inflate(R.layout.dialog_change_attendance,mDrawerLayout,
+                false);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("修改签到状态");
+        builder.setView(view);
+
+        /**
+         * 设置下拉菜单
+         */
+        spinner = (Spinner)view.findViewById(R.id.choose_change_atten_kind);
+        String[] strings = {"旷课","到课"};
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(ClassCheckTeacherActivity.this,
+                R.layout.support_simple_spinner_dropdown_item,strings);
+        spinner.setAdapter(arrayAdapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch ((String)spinner.getSelectedItem()){
+                    case "旷课":
+                        selectedItem = "旷课";
+                        break;
+                    case "到课":
+                        selectedItem = "到课";
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        builder.setPositiveButton("修改", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                changeAtten(temmpAttId);
+
+            }
+        });
+
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.create().show();
+    }
+
+
+    /**
+     * 向服务器发送数据，修改签到状态
+     * @param attendanceId
+     */
+    public void changeAtten(String attendanceId){
+        AttendanceEntity attendanceEntity = new AttendanceEntity();
+        switch (selectedItem){
+            case "旷课":
+                attendanceEntity.setAttendanceValid(false);
+                break;
+            case "到课":
+                attendanceEntity.setAttendanceValid(true);
+                break;
+        }
+        attendanceEntity.setAttendanceId(attendanceId);
+
+        Gson gson = new Gson();
+
+        String url = getString(R.string.url_head) + "/attendancecontrol/changeattendance";
+        HttpUtil.sendOKHttpPost(url, "attendanceChanged", gson.toJson(attendanceEntity), new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(ClassCheckTeacherActivity.this,"服务器抽风了呢！",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String responseText = response.body().string();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(responseText != null && !responseText.equals("")){
+                            getAttendance(checkId);
+                        }
+                        else{
+                            Toast.makeText(ClassCheckTeacherActivity.this,"服务器抽风了呢！",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
     }
 }
+
+
+
