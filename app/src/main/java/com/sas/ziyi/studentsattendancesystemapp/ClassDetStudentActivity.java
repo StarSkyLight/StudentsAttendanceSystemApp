@@ -373,20 +373,26 @@ public class ClassDetStudentActivity extends AppCompatActivity {
                     textView_check_kind.setText("二维码");
                     break;
             }
-            if(checkEntity.isCheckIsOver()){
-                if(attendanceEntity == null){
-                    textView_check_stage.setText("未签到");
-                }else {
-                    textView_check_stage.setText("已签到");
-                    counter++;
-                }
 
-            }else {
-                if(attendanceEntity == null){
-                    textView_check_stage.setText("正在进行");
+            if(attendanceEntity != null){
+                if(checkEntity.isCheckIsOver()){
+
+                    if(attendanceEntity.isAttendanceValid()){
+                        textView_check_stage.setText("已签到");
+                        counter++;
+                    }else {
+                        textView_check_stage.setText("旷课");
+
+                    }
+
                 }else {
-                    textView_check_stage.setText("已签到");
-                    counter++;
+                    if(attendanceEntity.isAttendanceValid()){
+                        textView_check_stage.setText("已签到");
+                        counter++;
+
+                    }else {
+                        textView_check_stage.setText("正在进行");
+                    }
                 }
             }
 
@@ -406,7 +412,7 @@ public class ClassDetStudentActivity extends AppCompatActivity {
                         /**
                          * 判断是否已经签到成功
                          */
-                        if(tAttendanceEntity == null){
+                        if(!tAttendanceEntity.isAttendanceValid()){
                             /**
                              * 判断考勤种类，进入不同界面
                              *
