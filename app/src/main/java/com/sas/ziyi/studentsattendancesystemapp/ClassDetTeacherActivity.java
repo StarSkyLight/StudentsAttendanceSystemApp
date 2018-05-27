@@ -5,6 +5,8 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -81,6 +83,21 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
     public AMapLocationListener mLocationListener;
     //声明AMapLocationClientOption对象
     public AMapLocationClientOption mLocationOption = null;
+
+
+    /*private DownloadService.DownloadBinder downloadBinder;
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            downloadBinder = (DownloadService.DownloadBinder) service;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };*/
 
 
     @Override
@@ -204,8 +221,43 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
                 classEnt = gson.fromJson(classEntity,ClassEntity.class);
                 deleteClass(classEnt.getClassId());
                 break;
+            case R.id.output_file:
+                gson = new Gson();
+                classEnt = gson.fromJson(classEntity,ClassEntity.class);
+                outputFile(getString(R.string.url_head) + "/attendancecontrol/download" +
+                        "?teacherid=" + teacherInfor + "&classid=" + classEnt.getClassId());
+                break;
         }
         return true;
+    }
+
+
+    public void outputFile(String url){
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(url));
+        startActivity(intent);
+
+        /*Intent intent = new Intent(this,DownloadService.class);
+        //启动服务
+        startService(intent);
+        //绑定服务
+        bindService(intent,connection,BIND_AUTO_CREATE);
+
+        //运行时权限的申请
+        if(ContextCompat.checkSelfPermission(ClassDetTeacherActivity.this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(ClassDetTeacherActivity.this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
+        }
+
+        if(downloadBinder == null){
+            return;
+        }else {
+            downloadBinder.startDownload(url);
+        }*/
+
     }
 
 
@@ -724,6 +776,9 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
         if(mLocationClient!=null) {
             mLocationClient.onDestroy();//销毁定位客户端。
         }
+
+        //解绑服务
+        //unbindService(connection);
     }
 
     @Override
@@ -735,6 +790,19 @@ public class ClassDetTeacherActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults){
 
+        switch (requestCode){
+            case 1:
+                if(grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED){
+                    Toast.makeText(ClassDetTeacherActivity.this,"拒绝权限将无法导出考勤记录！",
+                            Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+                break;
+        }
+
+    }
 
 }

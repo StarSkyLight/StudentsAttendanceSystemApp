@@ -267,7 +267,7 @@ public class ClassesForStudentActivity extends AppCompatActivity {
                              * 以列表显示
                              *
                              */
-                            showClassesInfo(responseText);
+                            getStudentClasses("studentInfor",studentInfor);
                         }
                         else{
                             Toast.makeText(ClassesForStudentActivity.this,"无相应课程！",

@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 import com.sas.ziyi.studentsattendancesystemapp.entity.LoginEntity;
+import com.sas.ziyi.studentsattendancesystemapp.util.Utility;
 
 public class RegisterActivity extends AppCompatActivity {
     /**
@@ -89,7 +90,7 @@ public class RegisterActivity extends AppCompatActivity {
                                  */
                                 if(jsonObject != null){
                                     jsonObject.addProperty("userName",editText_userName.getText().toString());
-                                    jsonObject.addProperty("password",editText_password.getText().toString());
+                                    jsonObject.addProperty("password", Utility.HashCode(editText_password.getText().toString()));
 
                                     if(jsonObject.get("role").getAsString().equals("student")){
                                         Intent intent = new Intent(RegisterActivity.this,RegisterActivity2.class);

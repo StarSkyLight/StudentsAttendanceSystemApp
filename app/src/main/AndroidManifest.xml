@@ -70,9 +70,14 @@
 
         <meta-data
             android:name="com.amap.api.v2.apikey"
-            android:value="872ab40ccf612cfb40825cbcda0c2561"></meta-data>
+            android:value="872ab40ccf612cfb40825cbcda0c2561" />
 
-        <activity android:name=".ShowQRCodeActivity"></activity>
+        <activity android:name=".ShowQRCodeActivity" />
+
+        <service
+            android:name=".service.DownloadService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>
