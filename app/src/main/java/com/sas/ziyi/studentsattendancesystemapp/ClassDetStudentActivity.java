@@ -175,7 +175,7 @@ public class ClassDetStudentActivity extends AppCompatActivity {
             case R.id.delete_class:
                 Gson gson = new Gson();
                 ClassEntity classEnt = gson.fromJson(classEntity,ClassEntity.class);
-                deleteClass(classEnt.getClassId());
+                showDeleteClassDialog(classEnt.getClassId());
                 break;
         }
         return true;
@@ -212,6 +212,39 @@ public class ClassDetStudentActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * 显示退出课程的对话框
+     */
+    public void showDeleteClassDialog(String classId){
+        final View view = LayoutInflater.from(this).inflate(R.layout.dialog_text,mDrawerLayout,
+                false);
+        final String tempClassId = classId;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("退出课程");
+        builder.setView(view);
+
+        TextView text_message = (TextView)view.findViewById(R.id.text_vice);
+        TextView text_warning = (TextView)view.findViewById(R.id.text_main);
+        text_message.setText("退出课程之后，签到记录将会被清空！");
+        text_warning.setText("是否退出课程？");
+
+        builder.setPositiveButton("退出", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //调用退出课程的方法
+                deleteClass(tempClassId);
+            }
+        });
+
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.create().show();
+    }
 
     /**
      * 退出课程
@@ -222,10 +255,11 @@ public class ClassDetStudentActivity extends AppCompatActivity {
         tempMap.put("classId",classId);
         tempMap.put("studentInfor",studentInfor);
 
+
         Gson gson = new Gson();
         String classId_studentInfor = gson.toJson(tempMap);
 
-        String url = getString(R.string.url_head) + "";
+        String url = getString(R.string.url_head) + "/classescontrol/studnetdeleteclass";
         HttpUtil.sendOKHttpPost(url, "classId_studentInfor", classId_studentInfor, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -556,6 +590,12 @@ public class ClassDetStudentActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * GPS定位的方法
+     * @param context
+     * @param attendanceNum
+     * @param attendanceEntity
+     */
     public void getLocation(Context context, String attendanceNum, AttendanceEntity attendanceEntity){
 
         final String attendanceN = attendanceNum;
