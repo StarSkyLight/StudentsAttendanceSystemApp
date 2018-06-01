@@ -180,8 +180,10 @@ public class RegisterActivity3 extends AppCompatActivity {
                     @Override
                     public void run() {
                         if(responseText != null && !responseText.equals("")){
-                            Toast.makeText(RegisterActivity3.this,responseText,
+                            Toast.makeText(RegisterActivity3.this,"注册成功",
                                     Toast.LENGTH_LONG).show();
+                            Intent intent = new Intent(RegisterActivity3.this,MainActivity.class);
+                            startActivity(intent);
                         }
                         else{
                             Toast.makeText(RegisterActivity3.this,"服务器抽风了呢！",
