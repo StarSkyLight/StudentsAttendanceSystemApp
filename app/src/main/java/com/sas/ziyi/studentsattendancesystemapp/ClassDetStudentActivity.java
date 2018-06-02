@@ -7,6 +7,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -77,6 +78,8 @@ public class ClassDetStudentActivity extends AppCompatActivity {
     //声明AMapLocationClientOption对象
     public AMapLocationClientOption mLocationOption = null;
 
+    public SwipeRefreshLayout swipeRefreshLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,6 +110,10 @@ public class ClassDetStudentActivity extends AppCompatActivity {
 
         scrollView = (ScrollView)findViewById(R.id.attendance_layout);
         contentLayout = (LinearLayout)findViewById(R.id.content_layout);
+
+        swipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.swipe_refresh);
+
+        swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
 
         /**
          * toolbar
@@ -153,6 +160,18 @@ public class ClassDetStudentActivity extends AppCompatActivity {
         item_school.setTitle(item_school.getTitle() + "  " + studentEntity.getStudentSchool());
         item_number.setTitle(item_number.getTitle() + "  " + studentEntity.getStudentNumber());
         item_email.setTitle(item_email.getTitle() + "  " + studentEntity.getStudentEmail());
+
+        /**
+         * 下拉刷新监听器
+         */
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Gson gson = new Gson();
+                ClassEntity classEnt = gson.fromJson(classEntity,ClassEntity.class);
+                getCheckAttendance(classEnt.getClassId(),classEnt.getClassFounderId());
+            }
+        });
 
         /**
          * 调用方法，发送请求
@@ -339,6 +358,10 @@ public class ClassDetStudentActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if(responseText != null && !responseText.equals("")){
+
+                            //刷新事件结束
+                            swipeRefreshLayout.setRefreshing(false);
+
                             /**
                              * 以列表显示
                              *

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -61,6 +62,8 @@ public class ClassCheckTeacherActivity extends AppCompatActivity {
     private String userNameHeader;
     private String userBasicInfo;
 
+    public SwipeRefreshLayout swipeRefreshLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,6 +87,10 @@ public class ClassCheckTeacherActivity extends AppCompatActivity {
 
         scrollView = (ScrollView)findViewById(R.id.attendance_layout);
         contentLayout = (LinearLayout)findViewById(R.id.content_layout);
+
+        swipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.swipe_refresh);
+
+        swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
 
         /**
          * toolbar
@@ -130,6 +137,15 @@ public class ClassCheckTeacherActivity extends AppCompatActivity {
         item_school.setTitle(item_school.getTitle() + "  " + teacherEntity.getTeacherSchool());
         item_email.setTitle(item_email.getTitle() + "  " + teacherEntity.getTeacherEmail());
 
+        /**
+         * 下拉刷新监听器
+         */
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getAttendance(checkId);
+            }
+        });
 
         /**
          * 调用方法，发送请求
@@ -221,6 +237,10 @@ public class ClassCheckTeacherActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if(responseText != null && !responseText.equals("")){
+
+                            //刷新事件结束
+                            swipeRefreshLayout.setRefreshing(false);
+
                             /**
                              * 以列表显示
                              *

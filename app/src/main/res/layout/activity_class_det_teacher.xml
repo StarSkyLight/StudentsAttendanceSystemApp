@@ -29,29 +29,35 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <ScrollView
-            android:id="@+id/check_layout"
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scrollbars="none"
-            android:overScrollMode="never"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-            <LinearLayout
-                android:id="@+id/content_layout"
+            android:layout_height="match_parent">
+            <ScrollView
+                android:id="@+id/check_layout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="match_parent"
+                android:scrollbars="none"
+                android:overScrollMode="never"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-                <include layout="@layout/title"></include>
+                <LinearLayout
+                    android:id="@+id/content_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-                <include layout="@layout/middle_title"></include>
+                    <include layout="@layout/title"></include>
 
-                <include layout="@layout/infor_list"></include>
+                    <include layout="@layout/middle_title"></include>
 
-            </LinearLayout>
+                    <include layout="@layout/infor_list"></include>
 
-        </ScrollView>
+                </LinearLayout>
+
+            </ScrollView>
+        </android.support.v4.widget.SwipeRefreshLayout>
+
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/add_check"

@@ -6,6 +6,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -50,6 +51,8 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
     private String userNameHeader;
     private String userBasicInfo;
 
+    public SwipeRefreshLayout swipeRefreshLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +60,9 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
 
         scrollView = (ScrollView)findViewById(R.id.class_layout);
         contentLayout = (LinearLayout)findViewById(R.id.content_layout);
+        swipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.swipe_refresh);
+
+        swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
         scrollView.setVisibility(View.INVISIBLE);
 
         /**
@@ -110,7 +116,15 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
             }
         });
 
-
+        /**
+         * 下拉刷新监听器
+         */
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                getTeacherClasses("teacherInfor",teacherInfor);
+            }
+        });
     }
 
     @Override
@@ -206,6 +220,8 @@ public class ClassesForTeacherActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        //刷新事件结束
+                        swipeRefreshLayout.setRefreshing(false);
                         /**
                          * 以列表显示
                          *
