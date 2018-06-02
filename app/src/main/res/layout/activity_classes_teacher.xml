@@ -33,20 +33,22 @@ android:layout_height="match_parent">
         <android.support.v4.widget.SwipeRefreshLayout
             android:id="@+id/swipe_refresh"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
             <ScrollView
                 android:id="@+id/class_layout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scrollbars="none"
-                android:overScrollMode="never"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior">
+                android:overScrollMode="never">
 
                 <LinearLayout
                     android:id="@+id/content_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:fitsSystemWindows="true">
 
 
                 </LinearLayout>
@@ -71,6 +73,8 @@ android:layout_height="match_parent">
         android:layout_height="match_parent"
         android:layout_gravity="start"
         app:menu="@menu/nav_menu_teacher"
-        app:headerLayout="@layout/nav_header"></android.support.design.widget.NavigationView>
+        app:headerLayout="@layout/nav_header">
+
+    </android.support.design.widget.NavigationView>
 
 </android.support.v4.widget.DrawerLayout>
