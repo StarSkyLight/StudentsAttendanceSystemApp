@@ -11,7 +11,14 @@ import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 import com.sas.ziyi.studentsattendancesystemapp.entity.LoginEntity;
+import com.sas.ziyi.studentsattendancesystemapp.util.HttpUtil;
 import com.sas.ziyi.studentsattendancesystemapp.util.Utility;
+
+import java.io.IOException;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 public class RegisterActivity extends AppCompatActivity {
     /**
@@ -92,16 +99,7 @@ public class RegisterActivity extends AppCompatActivity {
                                     jsonObject.addProperty("userName",editText_userName.getText().toString());
                                     jsonObject.addProperty("password", Utility.HashCode(editText_password.getText().toString()));
 
-                                    if(jsonObject.get("role").getAsString().equals("student")){
-                                        Intent intent = new Intent(RegisterActivity.this,RegisterActivity2.class);
-                                        intent.putExtra("NameAndPwd",jsonObject.toString());
-                                        startActivity(intent);
-                                    }
-                                    else{
-                                        Intent intent = new Intent(RegisterActivity.this,RegisterActivity3.class);
-                                        intent.putExtra("NameAndPwd",jsonObject.toString());
-                                        startActivity(intent);
-                                    }
+                                    isUserNameExistent(editText_userName.getText().toString());
                                 }
                                 else{
                                     Toast.makeText(RegisterActivity.this,"请选择角色！",
@@ -133,6 +131,59 @@ public class RegisterActivity extends AppCompatActivity {
                         jsonObject.addProperty("role","student");
                         break;
                 }
+            }
+        });
+    }
+
+
+    public void isUserNameExistent(String userName){
+        String url = getString(R.string.url_head) + "/registercontrol/isusernameexistent";
+        HttpUtil.sendOKHttpPost(url, "userName", userName, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(RegisterActivity.this,"服务器抽风了呢！",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                final String responseText = response.body().string();
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(responseText != null && !responseText.equals("")){
+                            if(responseText.equals("OK")){
+                                if(jsonObject.get("role").getAsString().equals("student")){
+                                    Intent intent = new Intent(RegisterActivity.this,RegisterActivity2.class);
+                                    intent.putExtra("NameAndPwd",jsonObject.toString());
+                                    startActivity(intent);
+                                }
+                                else{
+                                    Intent intent = new Intent(RegisterActivity.this,RegisterActivity3.class);
+                                    intent.putExtra("NameAndPwd",jsonObject.toString());
+                                    startActivity(intent);
+                                }
+                            }else if(responseText.equals("existent")){
+                                Toast.makeText(RegisterActivity.this,"用户名已被注册！",
+                                        Toast.LENGTH_SHORT).show();
+                            }else{
+                                Toast.makeText(RegisterActivity.this,"服务器抽风了呢！",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                        else{
+                            Toast.makeText(RegisterActivity.this,"服务器抽风了呢！",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
             }
         });
     }
