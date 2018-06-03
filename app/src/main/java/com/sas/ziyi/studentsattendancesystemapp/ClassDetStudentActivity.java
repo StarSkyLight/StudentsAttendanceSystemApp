@@ -622,6 +622,12 @@ public class ClassDetStudentActivity extends AppCompatActivity {
                                 Gson gson = new Gson();
                                 ClassEntity classEnt = gson.fromJson(classEntity,ClassEntity.class);
                                 getCheckAttendance(classEnt.getClassId(),classEnt.getClassFounderId());
+                            }else if(responseText.equals("distanceFailed")){
+                                Toast.makeText(ClassDetStudentActivity.this,"位置不在可信范围内！",
+                                        Toast.LENGTH_SHORT).show();
+                            }else if(responseText.equals("numberFailed")){
+                                Toast.makeText(ClassDetStudentActivity.this,"签到码错误！",
+                                        Toast.LENGTH_SHORT).show();
                             }else{
                                 Toast.makeText(ClassDetStudentActivity.this,"签到失败！",
                                         Toast.LENGTH_SHORT).show();
