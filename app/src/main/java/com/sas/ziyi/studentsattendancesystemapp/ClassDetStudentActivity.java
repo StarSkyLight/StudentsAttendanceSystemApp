@@ -451,6 +451,12 @@ public class ClassDetStudentActivity extends AppCompatActivity {
                         textView_check_stage.setText("正在进行");
                     }
                 }
+            }else{
+                if(!checkEntity.isCheckIsOver()){
+                    textView_check_stage.setText("正在进行");
+                }else{
+                    textView_check_stage.setText("旷课");
+                }
             }
 
 
@@ -466,10 +472,8 @@ public class ClassDetStudentActivity extends AppCompatActivity {
                         Toast.makeText(ClassDetStudentActivity.this,"考勤已经结束！",
                                 Toast.LENGTH_SHORT).show();
                     }else{
-                        /**
-                         * 判断是否已经签到成功
-                         */
-                        if(!tAttendanceEntity.isAttendanceValid()){
+                        if(tAttendanceEntity == null){
+
                             /**
                              * 判断考勤种类，进入不同界面
                              *
@@ -485,9 +489,30 @@ public class ClassDetStudentActivity extends AppCompatActivity {
                                     break;
                             }
 
-                        }else {
-                            Toast.makeText(ClassDetStudentActivity.this,"考勤已经完成！",
-                                    Toast.LENGTH_SHORT).show();
+                        }else{
+                            /**
+                             * 判断是否已经签到成功
+                             */
+                            if(!tAttendanceEntity.isAttendanceValid()){
+                                /**
+                                 * 判断考勤种类，进入不同界面
+                                 *
+                                 */
+                                switch (tCheckEntity.getCheckKind()){
+                                    case 0:
+                                        showDialog(studentInfor,tCheckEntity);
+                                        break;
+                                    case 1:
+                                        checkEntForQR = tCheckEntity;
+                                        Intent intent = new Intent(ClassDetStudentActivity.this, CaptureActivity.class);
+                                        startActivityForResult(intent, 2);
+                                        break;
+                                }
+
+                            }else {
+                                Toast.makeText(ClassDetStudentActivity.this,"考勤已经完成！",
+                                        Toast.LENGTH_SHORT).show();
+                            }
                         }
 
                     }

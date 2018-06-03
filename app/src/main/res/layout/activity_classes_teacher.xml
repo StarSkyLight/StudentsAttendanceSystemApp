@@ -39,16 +39,17 @@ android:layout_height="match_parent">
             <ScrollView
                 android:id="@+id/class_layout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:scrollbars="none"
-                android:overScrollMode="never">
+                android:overScrollMode="never"
+                android:fillViewport="true">
 
                 <LinearLayout
                     android:id="@+id/content_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:fitsSystemWindows="true">
+                    android:paddingBottom="50dp">
 
 
                 </LinearLayout>
